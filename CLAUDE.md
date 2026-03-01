@@ -1,9 +1,11 @@
-# Proyecto: Automatización de apuestas en La Primitiva
+# Proyecto: Automatización de apuestas en La Primitiva y verificación de premios
 
 ## Objetivo
 
 Automatizar el proceso de generar números aleatorios para La Primitiva y rellenar el formulario de apuesta en la web oficial de Loterías y Apuestas del Estado:
 `https://juegos.loteriasyapuestas.es`
+
+Adicionalmente, bookmarklets de verificación de aciertos para La Primitiva y Euromillones.
 
 ---
 
@@ -14,6 +16,8 @@ Automatizar el proceso de generar números aleatorios para La Primitiva y rellen
 | `primitiva.js` | Generador original de números. Solo consola, sin automatización web. |
 | `primitiva-explorar.js` | Script de exploración con Playwright. Hace login y pausa para inspeccionar el formulario. No es el script definitivo. |
 | `primitiva-auto.js` | **Script principal.** Genera números y automatiza el formulario completo. |
+| `verificar-primitiva.js` | Bookmarklet de verificación de aciertos para La Primitiva. |
+| `verificar-euromillones.js` | Bookmarklet de verificación de aciertos para Euromillones. |
 | `.env` | Credenciales y opciones. **No se sube al repo.** |
 | `.env.example` | Plantilla pública del `.env`. |
 | `.session.json` | Sesión guardada de Playwright. **No se sube al repo.** |
@@ -86,6 +90,31 @@ node primitiva-auto.js
 # Modo interactivo forzado con N apuestas (ignora .env para apuestas y confirmaciones)
 node primitiva-auto.js 3
 ```
+
+---
+
+---
+
+## Bookmarklets de verificación
+
+Ejecutar en la página del resguardo de apuesta (requiere sesión iniciada).
+Muestran un overlay con el desglose detallado por sorteo y apuesta, destacando los números acertados.
+
+### `verificar-primitiva.js`
+- Lee las apuestas del input oculto `name="combinacion"` (formato `.1=7,13,14:8`)
+- Lee los sorteos de `.item-resumen` → `ul.resultadoNumeros`, `#resultadoComplementario`, `#resultadoReintegro`
+- 7 categorías de premio (Especial, 1ª–5ª, Reintegro)
+- Números acertados: amarillo+negrita+subrayado
+- Complementario: naranja+cursiva+subrayado
+
+### `verificar-euromillones.js`
+- Lee las apuestas del input oculto `name="combinacion"` (formato `.1=30,40,45,49,50:3,10`)
+- Lee los sorteos de `.item-resumen` → `ul.resultadoNumeros`, `#resultadoEstrella1`, `#resultadoEstrella2`
+- 13 categorías de premio (1ª a 13ª, mínimo 2N+0E)
+- Números acertados: amarillo+negrita+subrayado
+- Estrellas acertadas: naranja+negrita+subrayado (prefijo ★)
+
+Para usar como bookmarklet: copiar la línea `javascript:...` del final de cada fichero como URL de un marcador del navegador.
 
 ---
 
