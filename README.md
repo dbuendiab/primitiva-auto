@@ -1,6 +1,9 @@
 # primitiva-auto
 
-Genera combinaciones aleatorias para **La Primitiva** y las rellena automáticamente en la web de [Loterías y Apuestas del Estado](https://juegos.loteriasyapuestas.es), lista para apostar con un solo comando.
+Herramientas para jugar a la lotería online con más comodidad:
+
+- **Automatización de La Primitiva**: genera combinaciones aleatorias y las rellena automáticamente en la web de [Loterías y Apuestas del Estado](https://juegos.loteriasyapuestas.es), lista para apostar con un solo comando.
+- **Bookmarklets de verificación**: comprueban tus aciertos en La Primitiva y Euromillones directamente desde la página del resguardo, con desglose por sorteo y apuesta.
 
 ---
 
@@ -78,6 +81,36 @@ La web usa protección anti-bots, así que el primer login es semi-manual:
 3. El script detecta que has entrado, guarda la sesión y continúa
 
 A partir de ahí, las siguientes ejecuciones van directas al formulario sin pasar por el login.
+
+---
+
+## Bookmarklets de verificación
+
+Dos scripts para comprobar tus aciertos directamente desde la página del resguardo de apuesta en [juegos.loteriasyapuestas.es](https://juegos.loteriasyapuestas.es).
+
+### Cómo instalar un bookmarklet
+
+1. Abre el archivo `.js` correspondiente (`verificar-primitiva.js` o `verificar-euromillones.js`)
+2. Copia el bloque de código de la sección **VERSIÓN BOOKMARKLET** (la línea que empieza por `javascript:(function(){...`)
+3. Crea un nuevo marcador en tu navegador y pégalo como URL
+
+### Cómo usarlo
+
+1. Entra en [juegos.loteriasyapuestas.es](https://juegos.loteriasyapuestas.es) con tu cuenta
+2. Ve a tu historial de apuestas y abre el resguardo del boleto que quieras comprobar
+3. Haz clic en el marcador
+
+Aparecerá un panel con el desglose completo: por cada sorteo y cada apuesta, verás los números acertados resaltados y la categoría de premio obtenida (si la hay).
+
+### `verificar-primitiva.js`
+
+- Categorías: Reintegro, 5ª (3 ac.), 4ª (4 ac.), 3ª (5 ac.), 2ª (5+C), 1ª (6 ac.) y Especial (6+R)
+- Resalta en amarillo los números acertados y en naranja el complementario
+
+### `verificar-euromillones.js`
+
+- 13 categorías: desde 13ª (2N) hasta 1ª (5N+2E)
+- Resalta en amarillo los números acertados y en naranja las estrellas acertadas
 
 ---
 
