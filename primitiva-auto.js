@@ -209,7 +209,7 @@ async function main() {
     console.log("Aviso: no se pudieron leer los importes del formulario.");
   }
 
-  const saldoInsuficiente = saldo !== null && total !== null && saldo < total;
+  let saldoInsuficiente = saldo !== null && total !== null && saldo < total;
 
   console.log("\n========================================");
   console.log(`  Saldo disponible : ${saldoTexto}`);
@@ -220,21 +220,76 @@ async function main() {
   console.log("========================================\n");
 
   // --- PASO 7: Confirmación final ---
-  if (saldoInsuficiente) {
-    console.log("Pago bloqueado: saldo insuficiente. Recarga fondos y vuelve a ejecutar el script.");
-    rl.close();
-    await browser.close();
-    return;
+  // Si el saldo es insuficiente, ofrece esperar a hacer una recarga manual
+  while (saldoInsuficiente) {
+    console.log("\n!! SALDO INSUFICIENTE — no se puede confirmar el pago.");
+    const esperar = await preguntar("¿Esperar a recargar saldo manualmente? (s=esperar, n=salir): ");
+    if (esperar.toLowerCase() !== "s") {
+      console.log("Cancelado. Cerrando navegador.");
+      rl.close();
+      await browser.close();
+      return;
+    }
+
+    await preguntar("Recarga el saldo en el navegador y pulsa Enter cuando estés listo...");
+
+    // Renavegar al formulario y re-rellenar con los mismos números
+    console.log("Recargando formulario...");
+    await page.goto("https://juegos.loteriasyapuestas.es/jugar/la-primitiva/apuesta", {
+      waitUntil: "domcontentloaded",
+      timeout: 15000,
+    });
+    await page.waitForSelector(".botonera-combinaciones", { timeout: 10000 });
+
+    const btnV = page.locator("a.vaciar-boleto:has(span.texto-papelera)");
+    const cls = await btnV.getAttribute("class");
+    if (!cls || !cls.includes("desactivado")) {
+      await btnV.click();
+      await page.waitForTimeout(300);
+    }
+
+    for (let i = 0; i < apuestas.length; i++) {
+      for (const num of apuestas[i]) {
+        await page.click(`.botonera-combinaciones .boton-boleto[value="${num}"]`);
+        await page.waitForTimeout(150);
+      }
+      await page.waitForTimeout(400);
+    }
+    await page.click(`.botonera-reintegro .boton-boleto[value="${reintegro}"]`);
+    await page.waitForTimeout(500);
+
+    // Re-leer saldo y total
+    try {
+      await page.waitForSelector("span.total-compra", { timeout: 5000 });
+      saldoTexto = (await page.textContent("span.titulo-valor")).trim();
+      totalTexto = (await page.textContent("span.total-compra")).trim();
+      saldo = parseEuros(saldoTexto);
+      total = parseEuros(totalTexto);
+    } catch {
+      console.log("Aviso: no se pudieron leer los importes del formulario.");
+    }
+
+    saldoInsuficiente = saldo !== null && total !== null && saldo < total;
+
+    console.log("\n========================================");
+    console.log(`  Saldo disponible : ${saldoTexto}`);
+    console.log(`  Total apuesta    : ${totalTexto}`);
+    if (saldoInsuficiente) {
+      console.log("  !! SALDO INSUFICIENTE — recarga antes de confirmar.");
+    } else {
+      console.log("  Saldo suficiente.");
+    }
+    console.log("========================================\n");
   }
 
+  // Confirmación de pago
   if (!modoInteractivo && process.env.PRIMITIVA_CONFIRMAR_PAGO === "si") {
     console.log("Confirmación de pago omitida (PRIMITIVA_CONFIRMAR_PAGO=si).");
-    rl.close();
   } else {
     const confPago = await preguntar("¿Confirmar y pagar? (s/n): ");
-    rl.close();
     if (confPago.toLowerCase() !== "s") {
       console.log("Pago cancelado. Cerrando navegador.");
+      rl.close();
       await browser.close();
       return;
     }
@@ -248,8 +303,15 @@ async function main() {
   console.log("Apuesta enviada.");
 
   await page.waitForTimeout(3000);
-  await browser.close();
-  console.log("Sesión cerrada.");
+
+  const cerrar = await preguntar("\n¿Cerrar el navegador? (s/n): ");
+  rl.close();
+  if (cerrar.toLowerCase() === "s") {
+    await browser.close();
+    console.log("Navegador cerrado.");
+  } else {
+    console.log("Navegador abierto. Ciérralo manualmente cuando quieras.");
+  }
 }
 
 main().catch((err) => {
